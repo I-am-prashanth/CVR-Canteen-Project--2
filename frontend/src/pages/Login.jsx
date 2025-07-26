@@ -1,3 +1,4 @@
+import { useMutation } from '@tanstack/react-query';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -7,23 +8,52 @@ function Login() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  const {mutate:loginAdmin,islLoading}=useMutation({
+        mutationKey:[email],
+        mutationFn:async({email,password})=>{
+          try{
+            // const gamil=email
+            const res=await fetch("/api/admin/login",{
+              method:'POST',
+            headers: {
+          "Content-Type": "application/json"
+        },body:JSON.stringify({gmail:email,password})
+            })
+            if(res.status!=201){
+              const error = await response.json().catch(() => null);
+              throw new Error(error?.message || 'Login failed');
+            }
+
+          const data=await res.json();
+          return data;
+
+          }catch(error){
+            console.log(error);
+            return error.message
+          }
+        },
+        onSuccess:(data)=>{
+          localStorage.setItem('adminToken', data.token);
+          console.log(data)
+      // Redirect to admin dashboard
+      // navigate('/adminpage',state={data});
+      navigate('/adminpage', { state: { data: data } });
+        }
+      
+  })
+
   const handleSubmit = (e) => {
     e.preventDefault();
     
     // Basic validation
     if (!email || !password) {
       setError('Please fill in all fields');
+      
       return;
     }
 
-    // Admin credentials check (in a real app, this would be an API call)
-    if (email === 'admin@cvrcanteen.com' && password === 'admin123') {
-      // Successful login
-      localStorage.setItem('isAdmin', 'true');
-      navigate('/admin/dashboard');
-    } else {
-      setError('Invalid admin credentials');
-    }
+    loginAdmin({email,password})
+   
   };
 
   return (
@@ -79,7 +109,8 @@ function Login() {
             </div>
 
             <div className="form-control mt-6">
-              <button type="submit" className="btn btn-primary w-full">
+              <button type="submit" className="btn btn-primary w-full"
+             >
                 Login
               </button>
             </div>

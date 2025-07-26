@@ -1,13 +1,16 @@
 import { useState } from 'react'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 import Home from './components/Home'
 import NewHome from './components/Home'
 import Login from './pages/Login'
-import Cart from './components/Cart'
+
 import useCartStore from './store/CartStore'
 import Token from './components/Token'
+import PaymentPage from './pages/PaymentPage';
+import Adminpage from './pages/Adminpage';
 
 
 function App() {
@@ -16,14 +19,15 @@ function App() {
 
   return (
    <>
-
-    {/* <Home /> */}
-    {/* <NewHome /> */}
-    {/* <Login /> */}
-     
-    {/* <Cart /> */}
-
-    {/* <Token /> */}
+  
+      <Routes>
+        <Route path='/' element={<Home />} />
+        <Route path='/admin' element={<Login/>} />
+        <Route path='/payment' element={<PaymentPage />} />
+        <Route path='/Token' element={<Token/>} />
+        <Route path='/adminpage' element={<Adminpage />} />
+    
+    </Routes>
 
 
 

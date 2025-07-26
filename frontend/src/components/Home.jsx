@@ -1,7 +1,10 @@
 import React from 'react';
-import ItemComponent from './ItemComponent';
+import ItemComponent from './Admin/ItemComponent';
+import Cart from './Cart';
 
 function Home() {
+
+    
   const categories = [
     { name: "🍒🍏 FRUIT STALL �🍒", id: "fruits" },
     { name: "🍔🍟 FAST FOOD 🍔🍟", id: "fastfood" },
@@ -76,6 +79,7 @@ function Home() {
           </div>
         ))}
       </div>
+      <Cart />
     </>
   );
 }

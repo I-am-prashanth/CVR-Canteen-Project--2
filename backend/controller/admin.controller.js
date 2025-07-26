@@ -3,6 +3,10 @@ import { Vendor } from "../models/vendor.model.js";
 import { Product } from "../models/product.model.js";
 import generate from "../libs/utils/generate.js";
 import { Token } from "../models/token.model.js";
+// import {V2 as cloudinary} from "cloudinary";
+import pkg from 'cloudinary';
+
+const { v2: cloudinary } = pkg;
 
 
 
@@ -55,21 +59,22 @@ export const login=async(req,res)=>{
     try{
         
         const {password,gmail}=req.body;
+        
         let user=null;
         if(!gmail){//gmail is mandedatory (either username or phonenumber or gmail)
-            res.status(404).json({message:"invalid intities || usernot exist"})
+           return  res.status(404).json({message:"invalid intities || usernot exist"})
         }
         else{
             //finding the user exist with give data(username)
             user=await Vendor.findOne({gmail})//checking with gmail
      
         }
-    if(!user) res.status(404).json({message:"unable to find user with giver credentails"})
+    if(!user) return res.status(404).json({message:"unable to find user with giver credentails"})
     
     //before login it checking the given password
         const checkpass=await bcrypt.compare(password,user.password);
 
-        if(!checkpass) res.status(500).json({message:"invalid password"})
+        if(!checkpass) return res.status(500).json({message:"invalid password"})
         
         generate(user._id,res)
    
@@ -77,20 +82,25 @@ export const login=async(req,res)=>{
 
     }catch(error){
         console.log(error);
-        res.status(500).json({message:"error occured while login:"+error.message})
+        res.status(500).json({message:error.message})
     }
 }
 
 export const addproduct=async(req,res)=>{
     try{
+        let imgurl=null;
         const{name,img,descrition,price}=req.body;
-        if(!name || !img || !price){
+        if(!name || !price){
             res.status(404).json({message:"all flied required"});
+        }
+       if(img){
+        const postimg=await cloudinary.uploader.upload(img)
+         imgurl=postimg.secure_url;
         }
         const prod=new Product({
             name:name,
             vendor:req.user._id,
-            img:img,
+            img:imgurl || "",
             descrition:descrition,
             price:price
         });
@@ -115,8 +125,9 @@ export const deletepost=async(req,res)=>{
         // const{name,img,descrition,price}=req.body;
         
         const product_id=req.params.id
+        console.log(product_id)
 
-        const findProduct=await Product.findById({
+        const findProduct=await Product.findOne({
             vendor:req.user._id,
             _id:product_id
         });
@@ -171,15 +182,27 @@ export const updateProduct=async(req,res)=>{
         
         const product_id=req.params.id
 
+        
+
         const findProduct=await Product.findById({
             vendor:req.user._id,
             _id:product_id
         });
         if(!findProduct)return res.status(404).json({message:"admin don't have this product"});
 
+        if(post.img){
+            await cloudinary.uploader.destroy(post.img.split('/').pop().split('.')[0]);
+            
+        }
+        let imgurl=null
+        if(img){
+        postimg=await cloudinary.uploader.upload(img)
+         imgurl=postimg.secure_url;
+        }
+
     const updatedProduct=await Product.findByIdAndUpdate(findProduct._id,{
         name:name || findProduct.name,
-        img:img || findProduct.img,
+        img:imgurl || findProduct.img,
         descrition:descrition ||findProduct.descrition ,
         price:price || findProduct.price
     } ,{ new: true } );
@@ -206,6 +229,16 @@ export const findToken=async(req,res)=>{
         if(token.vendor.toString()!==req.user._id.toString()){
             return res.status(404).json({message:"token found but for outher vendor Or wrongly paid"})
         }
+        let outToken = await token.populate([
+  {
+    path: 'items.product',
+    select: 'name' // assuming your Product model has 'name' field
+  },
+  {
+    path: 'vendor',
+    select: 'name' // assuming your Vendor model has 'name' field
+  }
+]);
         return res.json(token)
 
 
@@ -225,11 +258,11 @@ export const delOrdeactivate=async(req,res)=>{
             return res.status(404).json({message:"can't able to find the token or token expried"});
         }
         if(token.vendor.toString()!==req.user._id.toString()){
-            return res.status(404).json({message:"token found but for outher vendour"})
+            return res.status(500).json({message:"token found but for outher vendour"})
         }
         if(oper=="delete"){
             await token.deleteOne();
-            
+            return res.status(201).json({message:"sucesufully deleted the token"})
         }
         else{
             await token.updateOne({ isValid: false });
@@ -238,6 +271,6 @@ export const delOrdeactivate=async(req,res)=>{
 
 
     }catch(error){
-        console.log("error occured while")
+        console.log("error occured while",error)
     }
 }

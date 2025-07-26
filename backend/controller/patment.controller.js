@@ -3,8 +3,9 @@ import { instance } from "../libs/utils/rajor.js"
 import { Token } from "../models/token.model.js";
 
 export const topay=async(req,res)=>{
+    const {amount}=req.body;
     const options={
-        amount:Number(1000*100),
+        amount:Number(amount*100),
         currency:"INR",
     }
     try{
@@ -70,7 +71,21 @@ export const generateToken=async(req,res)=>{
             items:items,
         })
         if(newToken) await newToken.save();
-        res.status(201).json(newToken);
+
+        let outToken = await newToken.populate([
+  {
+    path: 'items.product',
+    model: 'Product', // Explicitly specify the model
+    select: 'name price' // Select the fields you want
+  },
+  {
+    path: 'vendor',
+    model: 'Vendor', // Explicitly specify the model
+    select: 'name' // Select the fields you want
+  }
+]);
+
+        res.status(201).json(outToken);
 
     }catch(error){
         console.log("error occured while generating token:",error);

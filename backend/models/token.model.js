@@ -17,7 +17,7 @@ const token = new mongoose.Schema(
   {
     product: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "products",
+      ref: "Product",
       required: true
     },
     quantity: {

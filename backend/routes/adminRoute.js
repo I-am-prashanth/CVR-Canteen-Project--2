@@ -11,7 +11,7 @@ router.post("/addproduct",Protectuser,addproduct);
 router.delete("/deletepost/:id",Protectuser,deletepost);
 router.post("/update/:id",Protectuser,updateProduct);
 router.get("/getposts",Protectuser,allproducts);
-router.get("/gettoken",Protectuser,findToken);
+router.post("/gettoken",Protectuser,findToken);
 router.post("/delOrdeactivate",Protectuser,delOrdeactivate);
 
 

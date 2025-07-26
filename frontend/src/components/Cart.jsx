@@ -1,5 +1,6 @@
 import React from 'react';
 import useCartStore from '../store/CartStore'
+import { Link } from 'react-router-dom';
 
 function Cart() {
   // Calculate total amount
@@ -36,9 +37,14 @@ function Cart() {
         <span className='text-white font-bold'>TOTAL:</span>
         <span className='text-amber-400 font-bold'>₹{totalAmount}</span>
       </div>
+      <Link to="/payment" state={{ 
+    key1: totalAmount,
+    
+  }}>
       <button className='w-full mt-3 bg-amber-500 hover:bg-amber-600 text-white py-2 rounded-lg transition-colors'>
         CHECKOUT
       </button>
+      </Link>
     </div>
   );
 }
