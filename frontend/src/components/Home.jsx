@@ -1,16 +1,42 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useState } from 'react';
 import ItemComponent from './Admin/ItemComponent';
 import Cart from './Cart';
+import Prodskelton from './Prodskelton';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 function Home() {
-
+  
+  const [isAdding, setIsAdding] = useState(false);
+  const [isAdded, setIsAdded] = useState(false);
+ 
     
   const categories = [
-    { name: "🍒🍏 FRUIT STALL �🍒", id: "fruits" },
-    { name: "🍔🍟 FAST FOOD 🍔🍟", id: "fastfood" },
-    { name: "SHAWARMA POINT", id: "shawarma" },
-    { name: "GENERAL STORE", id: "general" }
+    // { name: "🍒🍏 FRUIT STALL �🍒", id: "fruits" },
+    { name: "fastfood", id: "687b8da1c2f9eb015f72676a" },
+    { name: "fruit juice stall", id: "687bd8107a00bf8c168dc598" },
+    { name: "shrawma stall", id: "6885d0eba43e872289095d08" },
   ];
+  const {mutate:delToken}=useMutation({
+    mutationFn:async()=>{
+      try{
+
+        const res=await fetch(`/api/payment/logout`,{
+                      method:'POST',
+                      headers: {
+                      "Content-Type": "application/json"
+                      }
+                  });
+        
+
+      }catch(err){
+        throw err.message
+      }
+    }
+  })
+  useEffect(()=>{
+    delToken();
+  },[])
 
   return (
     <>
@@ -65,19 +91,69 @@ function Home() {
         
 
         {/* Category Sections */}
-        {categories.map((category) => (
-          <div key={category.id}>
+        {categories.map((category) => 
+          {
+          const { data: prod, isLoading, error } = useQuery({
+           queryKey: ['products', category.id],
+            queryFn:async()=>{
+              try{
+        const products=await fetch('/api/payment/getprod',{
+          method: 'POST',
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ vendor:category.id})
+        
+        });
+        if(!products.ok){
+          const error=await products.message;
+          throw error
+        }
+        const res=await products.json();
+        return res;
+
+      }catch(err){
+        throw err
+      }
+              
+            }}
+          );
+          
+          return(
+          
+          
+       
+          <div key={category.name}>
             <div className="text-2xl md:text-3xl rounded-md font-bold text-center py-3 mb-4 bg-gray-700 text-white tracking-wide">
               {category.name}
             </div>
+            {
+              <>
+                
+
             <div className="flex overflow-x-auto snap-x pb-6 md:grid md:grid-cols-4 gap-4 mx-2 mt-2">
-              <ItemComponent />
-              <ItemComponent />
-              <ItemComponent />
-              
+          
+              {/* <ItemComponent /> */}
+              {(isLoading)&& <>
+              <Prodskelton />
+              <Prodskelton />
+              </>
+              }
+              {prod && prod.map(product=>{
+                // console.log(product._id," ",product.name)
+                return(<ItemComponent key={product._id} product={product} fomAdmin={false} vendorName={category.name}/>)
+              }
+                
+              )}
+               
             </div>
+            </>
+            }
           </div>
-        ))}
+          )
+})}
+
+         
       </div>
       <Cart />
     </>

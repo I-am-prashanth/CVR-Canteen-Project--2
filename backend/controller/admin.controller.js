@@ -221,25 +221,31 @@ export const updateProduct=async(req,res)=>{
 
 export const findToken=async(req,res)=>{
     try{
-        const {tokenNumber}=req.body;
+        console.log("entered")
+        const {tokenNumber,user}=req.body;
+        console.log(tokenNumber)
         const token=await Token.findOne({tokenNumber:tokenNumber});
         if(!token){
             return res.status(404).json({message:"can't able to find the token or token expried"});
         }
-        if(token.vendor.toString()!==req.user._id.toString()){
+        // console.log(req)
+        if(user && token.vendor.toString()!==user){
             return res.status(404).json({message:"token found but for outher vendor Or wrongly paid"})
         }
         let outToken = await token.populate([
   {
     path: 'items.product',
-    select: 'name' // assuming your Product model has 'name' field
+    model: 'Product', // Explicitly specify the model
+    select: 'name price' // Select the fields you want
   },
   {
     path: 'vendor',
-    select: 'name' // assuming your Vendor model has 'name' field
+    model: 'Vendor', // Explicitly specify the model
+    select: 'name' // Select the fields you want
   }
 ]);
-        return res.json(token)
+// console.log(outToken)
+        return res.json(outToken)
 
 
     }catch(error){
@@ -253,24 +259,28 @@ export const delOrdeactivate=async(req,res)=>{
     try{
         // const tokenNumber=req.params.id;
         const {tokenNumber,oper}=req.body;
+        console.log(tokenNumber,oper)
         const token=await Token.findOne({tokenNumber:tokenNumber});
+        // console.log(token)
         if(!token){
             return res.status(404).json({message:"can't able to find the token or token expried"});
         }
+        // console.log(token.vendor,req.user)
         if(token.vendor.toString()!==req.user._id.toString()){
-            return res.status(500).json({message:"token found but for outher vendour"})
+            return res.status(404).json({message:"token found but for outher vendour"})
         }
-        if(oper=="delete"){
+        if(oper && oper=="delete"){
             await token.deleteOne();
             return res.status(201).json({message:"sucesufully deleted the token"})
         }
         else{
             await token.updateOne({ isValid: false });
         }
-        return res.json(token)
+        return res.status(200).json(token)
 
 
     }catch(error){
         console.log("error occured while",error)
+        res.status(500).json({message:error.message})
     }
 }

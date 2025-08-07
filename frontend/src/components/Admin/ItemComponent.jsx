@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
-import useCartStore from '../../store/CartStore';
+import useCartStore from '../../store/tempstore';
 import { useMutation } from '@tanstack/react-query';
 
 function ItemComponent(props) {
-  // const addItem = useCartStore(state => state.addItem);
+  const addItem = useCartStore(state => state.addItem);
   const [update, setUpdate] = useState("notUpdate");
   const {mutate:deleteProd}=useMutation({
     mutationFn:async(id)=>{
       try{
-        console.log(id)
         const res=await fetch(`api/admin/deletepost/${id}`,{
           method:'DELETE',
           headers: {
@@ -29,8 +28,12 @@ function ItemComponent(props) {
 
   const handleClick = () => {
     addItem({
-      name: "Chicken fried rice",
-      price: 200
+      _id:props?.product?._id,
+      vendor:props?.product?.vendor,
+      name: props?.product?.name,
+      price: props?.product?.price,
+      quantity:1,
+      vendorName:props?.vendorName,
     });
   };
 
@@ -38,18 +41,16 @@ function ItemComponent(props) {
     // Update logic here
   };
   const deletePost=()=>{
-    console.log("product id is",props?.product?._id)
     deleteProd(props?.product?._id )
-
   }
 
   return (
     <div className="group relative mt-2 w-72 flex-shrink-0 snap-start transition-all duration-300 hover:scale-105 hover:shadow-lg">
       <div className="card image-full bg-base-100 shadow-sm w-full h-full rounded-xl overflow-hidden border border-gray-100">
-        {/* {console.log(props.product)} */}
+        {/* {console.log(props.product," ",props.vendorName)} */}
         {/* Simple Add Image Button */}
         <button 
-          className="absolute top-2 right-2 z-20 bg-blue-500 hover:bg-blue-600 text-white text-sm py-1 px-3 rounded-md flex items-center gap-1 transition-colors"
+          className="absolute  top-2 right-2 z-20 bg-blue-500 hover:bg-blue-600 text-white text-sm py-1 px-3 rounded-md flex items-center gap-1 transition-colors"
           onClick={handleClick}
         >
           <svg 
@@ -66,7 +67,7 @@ function ItemComponent(props) {
               d="M12 4v16m8-8H4" 
             />
           </svg>
-          Change Image
+          Add Items
         </button>
 
         <figure className="h-48 overflow-hidden relative">
@@ -88,7 +89,7 @@ function ItemComponent(props) {
               
               {props?.fomAdmin && (
                 <div className="flex gap-2">
-                  {/* <button 
+                  <button 
                     className="btn btn-sm btn-info rounded-full px-4 hover:scale-105 transition-transform" 
                     onClick={handleUpdate}
                   >
@@ -101,7 +102,7 @@ function ItemComponent(props) {
                       <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                     </svg>
                     Update
-                  </button> */}
+                  </button>
 
                   <button className="btn btn-sm btn-error rounded-full px-4 hover:scale-105 transition-transform"
                     onClick={deletePost}>

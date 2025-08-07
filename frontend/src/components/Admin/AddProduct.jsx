@@ -6,6 +6,7 @@ function AddProduct() {
   const [price, setPrice] = useState(10);
   const [productImg, setProductImg] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
+  const [load,setload]=useState(false)
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -23,7 +24,7 @@ function AddProduct() {
   const { mutate: addproduct, isLoading } = useMutation({
     mutationFn: async ({productName,price,productImg}) => {
       try {
-        const res = await fetch('/api/admin/addproduct', {
+        const res = await fetch('/api/admin/addproduct$', {
         method: 'POST',
         headers: {
           "Content-Type": "application/json"
@@ -33,10 +34,12 @@ function AddProduct() {
       if(!res.ok){
         const err=await res.json();
         console.log(err);
+        setload(false)
         return null;
       }
       const prod=await res.json();
       console.log(prod);
+      setload(false)
       return prod;
       } catch (error) {
         console.log("Eroor: ",error);
@@ -47,6 +50,7 @@ function AddProduct() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setload(true);
 
     addproduct({productName,price,productImg});
   };
@@ -153,16 +157,17 @@ function AddProduct() {
               <button 
                 type="submit" 
                 className="btn bg-gradient-to-r from-amber-500 to-amber-600 border-none text-white rounded-full px-8 h-12 min-h-12 transform hover:translate-x-1 hover:scale-105 transition-all duration-300 hover:shadow-lg"
-                disabled={isLoading}
+                disabled={load}
               >
-                {isLoading ? (
+                {load ? (
                   <span className="loading loading-spinner"></span>
                 ) : (
                   <>
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
                     </svg>
-                    Add Product
+                    {load?"adding...":"Add Product"}
+                    {/* Add Product */}
                   </>
                 )}
               </button>

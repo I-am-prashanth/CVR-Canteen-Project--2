@@ -15,7 +15,6 @@ function TokenVerify() {
     mutationFn: async (tokenNumber) => {
       // Artificial delay to make spinner visible (remove in production)
       await new Promise(resolve => setTimeout(resolve, 500));
-      console.log("skljdfnkjn")
       
       const res = await fetch('/api/admin/gettoken', {
         method: 'POST',
@@ -40,10 +39,13 @@ function TokenVerify() {
     },
     onSuccess: (data) => {
       setTokenData(data);
+      console.log(data)
       setIsValid(true);
+      setload(false)
     },
     onError: (error) => {
       setOut(error.message);
+       setload(false)
       setIsValid(false);
     }
   });
